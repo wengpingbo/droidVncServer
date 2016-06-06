@@ -35,15 +35,15 @@ int initFlinger(void)
   char lib_name[64];
 
   len=ARR_LEN(compiled_sdks);
-  for (i=0;i<len;i++) {
-    sprintf(lib_name, DVNC_LIB_PATH "/libdvnc_flinger_sdk%d.so",compiled_sdks[i]);
+  for (i=0;i<1;i++) {
+    //sprintf(lib_name, DVNC_LIB_PATH "/libdvnc_flinger_sdk%d.so",compiled_sdks[i]);
 
-    if (flinger_lib != NULL)
-      dlclose(flinger_lib);
+    //if (flinger_lib != NULL)
+     // dlclose(flinger_lib);
     L("Loading lib: %s\n",lib_name);
-    flinger_lib = dlopen(lib_name, RTLD_NOW);
+    flinger_lib = dlopen("/system/lib64/libdvnc_flinger_sdk23.so", RTLD_NOW);
     if (flinger_lib == NULL){
-      L("Couldnt load flinger library %s! Error string: %s\n",lib_name,dlerror());
+      printf("Couldnt load flinger library %s! Error string: %s\n",lib_name,dlerror());
       continue; 
     }
   

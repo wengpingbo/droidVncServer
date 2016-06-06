@@ -76,9 +76,9 @@ void close_app();
 screenFormat screenformat;
 
 #define DVNC_FILES_PATH "/data/data/org.onaips.vnc/files/"
-#define DVNC_LIB_PATH "/data/data/org.onaips.vnc/lib/"
+#define DVNC_LIB_PATH "/system/lib64/"
 
 #define ARR_LEN(a) (sizeof(a)/sizeof(a)[0])
-static int compiled_sdks[] = {10, 14};
+static int compiled_sdks[] = {10, 14, 23};
 
 #endif

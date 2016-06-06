@@ -158,7 +158,7 @@ void initVncServer(int argc, char **argv)
   vncscr->frameBuffer =(char *)vncbuf;
   vncscr->port = VNC_PORT;
   vncscr->kbdAddEvent = keyEvent;
-  vncscr->ptrAddEvent = ptrEvent;
+  vncscr->ptrAddEvent = mouseEvent;
   vncscr->newClientHook = (rfbNewClientHookPtr)clientHook;
   vncscr->setXCutText = CutText;
 

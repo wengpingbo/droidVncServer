@@ -31,7 +31,8 @@ int suinput_write(int uinput_fd,
   descriptor on success. On error, -1 is returned, and errno is set
   appropriately.
 */
-int suinput_open(const char* device_name, const struct input_id* id);
+int suinput_kbd_open(const char* device_name, const struct input_id* id);
+int suinput_touch_open(const char* device_name, const struct input_id* id);
 
 /* 
   Destroys and closes a connection to the event device. Returns 0 on success.

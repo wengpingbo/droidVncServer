@@ -78,7 +78,7 @@ int initFB(void)
   size_t size = scrinfo.yres_virtual;
   if (size < scrinfo.yres * 2) {
     L("Using Droid workaround\n");
-    size = scrinfo.yres * 2;
+    size = scrinfo.yres;
   }
 
   if ((scrinfo.bits_per_pixel == 24)) {

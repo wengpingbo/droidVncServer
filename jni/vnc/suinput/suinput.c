@@ -55,7 +55,125 @@ int suinput_write_syn(int uinput_fd,
     return suinput_write(uinput_fd, EV_SYN, SYN_REPORT, 0);
 }
 
-int suinput_open(const char* device_name, const struct input_id* id)
+int suinput_touch_open(const char* device_name, const struct input_id* id)
+{
+    int original_errno = 0;
+    int uinput_fd = -1;
+    struct uinput_user_dev user_dev;
+    int i;
+
+    for (i = 0; i < UINPUT_FILEPATHS_COUNT; ++i) {
+        uinput_fd = open(UINPUT_FILEPATHS[i], O_WRONLY);//| O_NONBLOCK);
+        if (uinput_fd != -1)
+            break;
+    }
+
+    if (uinput_fd == -1)
+        return -1;
+
+
+     if (ioctl(uinput_fd, UI_SET_EVBIT, EV_KEY) == -1)
+         goto err;
+#if 1
+     if (ioctl(uinput_fd, UI_SET_EVBIT, EV_MSC) == -1)
+         goto err;
+     if (ioctl(uinput_fd, UI_SET_EVBIT, EV_REL) == -1)
+         goto err;
+     if (ioctl(uinput_fd, UI_SET_RELBIT, REL_X) == -1)
+         goto err;
+     if (ioctl(uinput_fd, UI_SET_RELBIT, REL_Y) == -1)
+         goto err;
+     if (ioctl(uinput_fd, UI_SET_RELBIT, REL_WHEEL) == -1)
+         goto err;
+    if (ioctl(uinput_fd, UI_SET_KEYBIT, BTN_LEFT) == -1)
+        goto err;
+    if (ioctl(uinput_fd, UI_SET_KEYBIT, BTN_RIGHT) == -1)
+        goto err;
+    if (ioctl(uinput_fd, UI_SET_KEYBIT, BTN_MIDDLE) == -1)
+        goto err;
+#else
+    if (ioctl(uinput_fd, UI_SET_EVBIT, EV_ABS) == -1)
+        goto err;
+    if (ioctl(uinput_fd, UI_SET_KEYBIT, BTN_TOUCH) == -1)
+        goto err;
+#endif
+#if 0
+    /* Configure device to handle absolute x and y axis. */
+    if (ioctl(uinput_fd, UI_SET_ABSBIT, ABS_MT_POSITION_X) == -1)
+        goto err;
+    if (ioctl(uinput_fd, UI_SET_ABSBIT, ABS_MT_POSITION_Y) == -1)
+        goto err;
+    if (ioctl(uinput_fd, UI_SET_ABSBIT, ABS_MT_TOUCH_MAJOR) == -1)
+        goto err;
+    if (ioctl(uinput_fd, UI_SET_ABSBIT, ABS_MT_TRACKING_ID) == -1)
+        goto err;
+    ///////////
+    if (ioctl(uinput_fd, UI_SET_ABSBIT, ABS_X) == -1)
+        goto err;
+    if (ioctl(uinput_fd, UI_SET_ABSBIT, ABS_Y) == -1)
+        goto err;
+#endif
+
+    /* Set device-specific information. */
+    memset(&user_dev, 0, sizeof(user_dev));
+    strncpy(user_dev.name, device_name, UINPUT_MAX_NAME_SIZE);
+    user_dev.id.bustype = id->bustype;
+    user_dev.id.vendor = id->vendor;
+    user_dev.id.product = id->product;
+    user_dev.id.version = id->version;
+
+#if 0
+    //minor tweak to support ABSolute events
+    user_dev.absmin[ABS_MT_POSITION_X] = 0;
+    user_dev.absmax[ABS_MT_POSITION_X] = 4096;
+    user_dev.absfuzz[ABS_MT_POSITION_X] = 0;
+    user_dev.absflat[ABS_MT_POSITION_X] = 0;
+
+    user_dev.absmin[ABS_MT_POSITION_Y] = 0;
+    user_dev.absmax[ABS_MT_POSITION_Y] = 4096;
+    user_dev.absfuzz[ABS_MT_POSITION_Y] = 0;
+    user_dev.absflat[ABS_MT_POSITION_Y] = 0;
+
+    user_dev.absmin[ABS_MT_TOUCH_MAJOR] = 0;
+    user_dev.absmax[ABS_MT_TOUCH_MAJOR] = 255;
+    user_dev.absfuzz[ABS_MT_TOUCH_MAJOR] = 0;
+    user_dev.absflat[ABS_MT_TOUCH_MAJOR] = 0;
+
+    user_dev.absmin[ABS_MT_TRACKING_ID] = 0;
+    user_dev.absmax[ABS_MT_TRACKING_ID] = 255;
+    user_dev.absfuzz[ABS_MT_TRACKING_ID] = 0;
+    user_dev.absflat[ABS_MT_TRACKING_ID] = 0;
+////////////
+    user_dev.absmin[ABS_X] = 0;
+    user_dev.absmax[ABS_X] = 4096;
+    user_dev.absfuzz[ABS_X] = 0;
+    user_dev.absflat[ABS_X] = 0;
+
+    user_dev.absmin[ABS_Y] = 0;
+    user_dev.absmax[ABS_Y] = 4096;
+    user_dev.absfuzz[ABS_Y] = 0;
+    user_dev.absflat[ABS_Y] = 0;
+#endif
+
+    if (write(uinput_fd, &user_dev, sizeof(user_dev)) != sizeof(user_dev))
+        goto err;
+
+    if (ioctl(uinput_fd, UI_DEV_CREATE) == -1)
+        goto err;
+
+    return uinput_fd;
+
+err:
+    original_errno = errno;
+    /* Cleanup. */
+    close(uinput_fd); /* Might fail, but we don't care anymore at this point. */
+    errno = original_errno;
+
+    return -1;
+
+}
+
+int suinput_kbd_open(const char* device_name, const struct input_id* id)
 {
     int original_errno = 0;
     int uinput_fd = -1;
@@ -71,46 +189,18 @@ int suinput_open(const char* device_name, const struct input_id* id)
     if (uinput_fd == -1)
         return -1;
 
-
-
-    /* Set device to handle following types of events: */
-
     /* Key and button events */
      if (ioctl(uinput_fd, UI_SET_EVBIT, EV_KEY) == -1)
          goto err;
-// 
-//     /* Key and button repetition events */
+
+     /* Key and button repetition events 
      if (ioctl(uinput_fd, UI_SET_EVBIT, EV_REP) == -1)
          goto err;
-//     
-//     /* Relative pointer motions */
-//     if (ioctl(uinput_fd, UI_SET_EVBIT, EV_REL) == -1)
-//         goto err;
-
-    /* Absolute pointer motions */
-
-    if (ioctl(uinput_fd, UI_SET_EVBIT, EV_ABS) == -1)
-        goto err;
+	 */
 
     /* Synchronization events, this is probably set implicitely too. */
     if (ioctl(uinput_fd, UI_SET_EVBIT, EV_SYN) == -1)
         goto err;
-
-
-
-    /* Configure device to handle relative x and y axis. */
-//     if (ioctl(uinput_fd, UI_SET_RELBIT, REL_X) == -1)
-//         goto err;
-//     if (ioctl(uinput_fd, UI_SET_RELBIT, REL_Y) == -1)
-//         goto err;
-
-    /* Configure device to handle absolute x and y axis. */
-    if (ioctl(uinput_fd, UI_SET_ABSBIT, ABS_X) == -1)
-        goto err;
-    if (ioctl(uinput_fd, UI_SET_ABSBIT, ABS_Y) == -1)
-        goto err;
-
-    
 
     /* Configure device to handle all keys, see linux/input.h. */
     for (i = 0; i < KEY_MAX; i++) {
@@ -126,20 +216,8 @@ int suinput_open(const char* device_name, const struct input_id* id)
     user_dev.id.product = id->product;
     user_dev.id.version = id->version;
 
-    //minor tweak to support ABSolute events
-    user_dev.absmin[ABS_X] = -2047;
-    user_dev.absmax[ABS_X] = 2048;
-    user_dev.absfuzz[ABS_X] = 0;
-    user_dev.absflat[ABS_X] = 0;
-
-    user_dev.absmin[ABS_Y] = -2047;
-    user_dev.absmax[ABS_Y] = 2048;
-    user_dev.absfuzz[ABS_Y] = 0;
-    user_dev.absflat[ABS_Y] = 0;
-
     if (write(uinput_fd, &user_dev, sizeof(user_dev)) != sizeof(user_dev))
         goto err;
-
 
     if (ioctl(uinput_fd, UI_DEV_CREATE) == -1)
         goto err;

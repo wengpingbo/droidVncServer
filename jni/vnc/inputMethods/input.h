@@ -31,7 +31,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 void initInput();
 int keysym2scancode(rfbBool down, rfbKeySym c, rfbClientPtr cl, int *sh, int *alt);
 void transformTouchCoordinates(int *x, int *y,int,int);
-void ptrEvent(int buttonMask, int x, int y, rfbClientPtr cl);
+void mouseEvent(int buttonMask, int x, int y, rfbClientPtr cl);
+void touchEvent(int buttonMask, int x, int y, rfbClientPtr cl);
 void keyEvent(rfbBool down, rfbKeySym key, rfbClientPtr cl);
 void cleanupInput();
 

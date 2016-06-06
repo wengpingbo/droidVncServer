@@ -1,19 +1,19 @@
 LOCAL_PATH:= $(call my-dir)
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES = \
-									flinger.cpp
+LOCAL_SRC_FILES = flinger.cpp
 
 #LOCAL_CFLAGS += -DPLATFORM_SDK_VERSION=$(PLATFORM_SDK_VERSION)
 
-LOCAL_C_INCLUDES +=	\
-										$(LOCAL_PATH) \
-										$(LOCAL_PATH)/..
+LOCAL_C_INCLUDES += $(LOCAL_PATH) $(LOCAL_PATH)/..
 
 LOCAL_PRELINK_MODULE:=false #override prelink map
 LOCAL_MODULE:= libdvnc_flinger_sdk$(PLATFORM_SDK_VERSION)
 LOCAL_MODULE_TAGS:= optional
-LOCAL_MODULE_PATH := $(LOCAL_PATH)/../libs/$(TARGET_CPU_ABI)
+# LOCAL_MODULE_RELATIVE_PATH := $(LOCAL_PATH)/../libs/$(TARGET_CPU_ABI)
+
+LOCAL_ALLOW_UNDEFINED_SYMBOLS := true
+LOCAL_MULTILIB := both
 
 ifeq ($(PLATFORM_SDK_VERSION),9)
 LOCAL_SHARED_LIBRARIES := libsurfaceflinger_client libui libbinder libutils  libcutils #libcrypto libssl libhardware
